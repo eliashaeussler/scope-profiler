@@ -1,0 +1,14 @@
+name: Release
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: 'Create release'
+
+    permissions:
+      contents: write
+
+    uses: eliashaeussler/gha/.github/workflows/github-release.yaml@a6093ebd6b0e93dedcb221832dadcb279bff4cbd # 0.9.1

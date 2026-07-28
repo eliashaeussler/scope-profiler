@@ -1,0 +1,7 @@
+parameters:
+	ignoreErrors:
+		-
+			rawMessage: 'Call to static method PHPUnit\Framework\Assert::assertSame() with ''foo'' and ''foo'' will always evaluate to true.'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: ../../tests/unit/ScopeTest.php
