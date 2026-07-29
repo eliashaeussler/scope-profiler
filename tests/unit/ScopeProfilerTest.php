@@ -26,8 +26,6 @@ namespace EliasHaeussler\ScopeProfiler\Tests;
 use EliasHaeussler\ScopeProfiler as Src;
 use PHPUnit\Framework;
 
-use function sleep;
-
 /**
  * ScopeProfilerTest.
  *
@@ -51,54 +49,23 @@ final class ScopeProfilerTest extends Framework\TestCase
     }
 
     #[Framework\Attributes\Test]
-    public function pushScopeCreatesAndAppliesNewScope(): void
+    public function pushScopeAddsGivenScope(): void
     {
-        $expected = new Src\Scope('foo');
+        $scope = new Src\Scope('foo');
 
-        $actual = $this->subject->pushScope('foo');
+        $this->subject->pushScope($scope);
 
-        self::assertEquals($expected, $actual);
-        self::assertEquals([$expected], $this->subject->releaseScopes());
+        self::assertEquals([$scope], $this->subject->releaseScopes());
     }
 
     #[Framework\Attributes\Test]
     public function pullScopeDropsScope(): void
     {
-        $this->subject->pushScope('foo');
+        $scope = new Src\Scope('foo');
 
-        $expected = new Src\Scope('foo');
+        $this->subject->pushScope($scope);
+        $this->subject->pullScope($scope);
 
-        $actual = $this->subject->pullScope('foo');
-
-        self::assertEquals($expected, $actual);
         self::assertEquals([], $this->subject->releaseScopes());
     }
-
-    //    #[Framework\Attributes\Test]
-    //    public function startAndExecuteMeasuresScope(): void
-    //    {
-    //        $function = function () {
-    //            sleep(2);
-    //
-    //            return 'foo';
-    //        };
-    //
-    //        $actual = Src\ScopeProfiler::startAndExecute('foo', $function, $result);
-    //
-    //        self::assertSame('foo', $result);
-    //        self::assertGreaterThan(2000, $actual->duration);
-    //    }
-    //
-    //    #[Framework\Attributes\Test]
-    //    public function stopReturnsMeasuredScope(): void
-    //    {
-    //        $subject = Src\ScopeProfiler::starrt('foo');
-    //
-    //        sleep(1);
-    //
-    //        $actual = $subject->stop();
-    //
-    //        self::assertSame('foo', $actual->action);
-    //        self::assertGreaterThan(0, $actual->duration);
-    //    }
 }

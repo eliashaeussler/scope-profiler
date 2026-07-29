@@ -45,24 +45,14 @@ final class ScopeProfiler
         return self::$instance ??= new self();
     }
 
-    /**
-     * @param non-empty-string $action
-     */
-    public function pushScope(string $action): Scope
+    public function pushScope(Scope $scope): void
     {
-        return $this->scopes[$action] = new Scope($action);
+        $this->scopes[$scope->action] = $scope;
     }
 
-    /**
-     * @param non-empty-string $action
-     */
-    public function pullScope(string $action): ?Scope
+    public function pullScope(Scope $scope): void
     {
-        $scope = $this->scopes[$action] ?? null;
-
-        unset($this->scopes[$action]);
-
-        return $scope;
+        unset($this->scopes[$scope->action]);
     }
 
     /**
