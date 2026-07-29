@@ -36,10 +36,18 @@ $profiler = ScopeProfiler\ScopeProfiler::get();
 $profiler = new ScopeProfiler\ScopeProfiler();
 ```
 
-To push a new scope, call `pushScope()` and pass the action name:
+To push a new scope, call `pushScope()` and pass the scope:
 
 ```php
-$scope = $profiler->pushScope('Crawling the internet');
+$scope = new ScopeProfiler\Scope('Crawling the internet');
+
+$profiler->pushScope($scope);
+```
+
+In case the scope should be detached from the profiler instance, simply call `pullScope()`:
+
+```php
+$profiler->pullScope($scope);
 ```
 
 ### Run task
