@@ -21,51 +21,63 @@ declare(strict_types=1);
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-namespace EliasHaeussler\ScopeProfiler;
+namespace EliasHaeussler\ScopeProfiler\Scope;
 
-use function memory_get_peak_usage;
+use EliasHaeussler\ScopeProfiler\Exception;
+use EliasHaeussler\ScopeProfiler\Profile;
+
+use function array_shift;
 
 /**
- * MeasurementPoint.
+ * Scope.
  *
  * @author Elias Häußler <elias@haeussler.dev>
  * @license GPL-3.0-or-later
  */
-final readonly class MeasurementPoint
+final class Scope
 {
     /**
-     * @param non-negative-int $memoryUsage
-     * @param non-negative-int $memoryPeak
+     * @var Task[]
+     */
+    private array $tasks = [];
+
+    /**
+     * @param non-empty-string $name
      */
     public function __construct(
-        public float $time,
-        public int $memoryUsage,
-        public int $memoryPeak,
+        public readonly string $name,
     ) {}
 
-    public static function now(): self
+    public function addTask(Task $task): self
     {
-        return new self(self::currentTime(), self::currentMemoryUsage(), self::currentMemoryPeak());
+        $this->tasks[] = $task;
+
+        return $this;
     }
 
-    private static function currentTime(): float
+    public function removeTask(Task $task): self
     {
-        return microtime(true) * 1000;
+        foreach ($this->tasks as $i => $storedTask) {
+            if ($storedTask === $task) {
+                unset($this->tasks[$i]);
+                break;
+            }
+        }
+
+        return $this;
     }
 
     /**
-     * @return non-negative-int
+     * @throws Exception\NoTasksAvailable
      */
-    private static function currentMemoryUsage(): int
+    public function run(Profile\Profile $profile): void
     {
-        return memory_get_usage(true);
-    }
+        if ([] === $this->tasks) {
+            throw new Exception\NoTasksAvailable();
+        }
 
-    /**
-     * @return non-negative-int
-     */
-    private static function currentMemoryPeak(): int
-    {
-        return memory_get_peak_usage(true);
+        while (null !== ($task = array_shift($this->tasks))) {
+            $task->execute($profile);
+        }
     }
 }

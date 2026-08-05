@@ -21,25 +21,48 @@ declare(strict_types=1);
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-namespace EliasHaeussler\ScopeProfiler\Exception;
+namespace EliasHaeussler\ScopeProfiler\Scope;
 
-use EliasHaeussler\ScopeProfiler\Scope\Scope;
-
-use function sprintf;
+use Throwable;
 
 /**
- * ScopeIsNotActive.
+ * TaskExecutionResult.
  *
  * @author Elias Häußler <elias@haeussler.dev>
  * @license GPL-3.0-or-later
  */
-final class ScopeIsNotActive extends Exception
+final readonly class TaskExecutionResult
 {
-    public function __construct(Scope $scope)
+    private function __construct(
+        private mixed $returnValue,
+        private ?Throwable $exception,
+    ) {}
+
+    public static function success(mixed $returnValue): self
     {
-        parent::__construct(
-            sprintf('The scope "%s" is not active.', $scope->name),
-            1785258952,
-        );
+        return new self($returnValue, null);
+    }
+
+    public static function failure(Throwable $exception): self
+    {
+        return new self(null, $exception);
+    }
+
+    /**
+     * @phpstan-assert-if-true !null $this->exception()
+     */
+    public function successful(): bool
+    {
+        return null === $this->exception;
+    }
+
+    public function returnValue(): mixed
+    {
+        return $this->returnValue;
+    }
+
+    public function exception(): ?Throwable
+    {
+        return $this->exception;
     }
 }
