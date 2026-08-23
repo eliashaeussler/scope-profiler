@@ -21,31 +21,29 @@ declare(strict_types=1);
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-namespace EliasHaeussler\ScopeProfiler\Tests;
+namespace EliasHaeussler\ScopeProfiler\Exception;
 
-use EliasHaeussler\ScopeProfiler as Src;
-use PHPUnit\Framework;
+use EliasHaeussler\ScopeProfiler\Profile;
 
-use function microtime;
+use function sprintf;
 
 /**
- * MeasurementPointTest.
+ * InvalidOrderOfPoints.
  *
  * @author Elias Häußler <elias@haeussler.dev>
  * @license GPL-3.0-or-later
  */
-#[Framework\Attributes\CoversClass(Src\MeasurementPoint::class)]
-final class MeasurementPointTest extends Framework\TestCase
+final class InvalidOrderOfPoints extends Exception
 {
-    #[Framework\Attributes\Test]
-    public function nowReturnsMeasurementPointForCurrentTimeAndMemoryUsage(): void
+    public function __construct(Profile\MeasurementPoint $current, Profile\MeasurementPoint $previous)
     {
-        $currentTime = microtime(true) * 1000;
-        $currentMemoryUsage = memory_get_usage(true);
-
-        $actual = Src\MeasurementPoint::now();
-
-        self::assertGreaterThanOrEqual($currentTime, $actual->time);
-        self::assertGreaterThanOrEqual($currentMemoryUsage, $actual->memoryUsage);
+        parent::__construct(
+            sprintf(
+                'Cannot add measurement point "%s", because it cannot follow "%s".',
+                $current->describe(),
+                $previous->describe(),
+            ),
+            1785788731,
+        );
     }
 }
