@@ -23,23 +23,16 @@ declare(strict_types=1);
 
 namespace EliasHaeussler\ScopeProfiler\Exception;
 
-use EliasHaeussler\ScopeProfiler\Scope\Scope;
-
-use function sprintf;
-
 /**
- * ScopeIsNotActive.
+ * NoTasksAvailable.
  *
  * @author Elias Häußler <elias@haeussler.dev>
  * @license GPL-3.0-or-later
  */
-final class ScopeIsNotActive extends Exception
+final class NoTasksAvailable extends Exception
 {
-    public function __construct(Scope $scope)
+    public function __construct()
     {
-        parent::__construct(
-            sprintf('The scope "%s" is not active.', $scope->name),
-            1785258952,
-        );
+        parent::__construct('The current scope does not have any tasks attached.', 1785785547);
     }
 }

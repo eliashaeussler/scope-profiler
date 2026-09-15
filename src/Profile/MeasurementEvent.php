@@ -21,25 +21,30 @@ declare(strict_types=1);
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-namespace EliasHaeussler\ScopeProfiler\Exception;
+namespace EliasHaeussler\ScopeProfiler\Profile;
 
-use EliasHaeussler\ScopeProfiler\Scope\Scope;
-
-use function sprintf;
+use function in_array;
 
 /**
- * ScopeIsNotActive.
+ * MeasurementEvent.
  *
  * @author Elias Häußler <elias@haeussler.dev>
  * @license GPL-3.0-or-later
  */
-final class ScopeIsNotActive extends Exception
+enum MeasurementEvent
 {
-    public function __construct(Scope $scope)
+    case Checkpoint;
+    case End;
+    case Pause;
+    case Resume;
+    case Start;
+
+    public function canFollow(self $other): bool
     {
-        parent::__construct(
-            sprintf('The scope "%s" is not active.', $scope->name),
-            1785258952,
-        );
+        return match ($other) {
+            self::Checkpoint, self::Resume, self::Start => in_array($this, [self::Checkpoint, self::End, self::Pause], true),
+            self::End => false,
+            self::Pause => in_array($this, [self::End, self::Resume], true),
+        };
     }
 }

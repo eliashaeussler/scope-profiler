@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace EliasHaeussler\ScopeProfiler;
 
-use function array_values;
+use EliasHaeussler\ScopeProfiler\Profile\MeasurementEvent;
 
 /**
  * ScopeProfiler.
@@ -36,34 +36,39 @@ final class ScopeProfiler
     private static ?self $instance = null;
 
     /**
-     * @var array<non-empty-string, Scope>
+     * @var list<Profile\Profile>
      */
-    private array $scopes = [];
+    private array $profiles = [];
 
     public static function get(): self
     {
         return self::$instance ??= new self();
     }
 
-    public function pushScope(Scope $scope): void
+    public function profile(Scope\Scope $scope): Profile\Profile
     {
-        $this->scopes[$scope->action] = $scope;
-    }
+        $this->profiles[] = $profile = Profile\Profile::for($scope);
 
-    public function pullScope(Scope $scope): void
-    {
-        unset($this->scopes[$scope->action]);
+        $profile->addPoint(Profile\MeasurementPoint::now(MeasurementEvent::Start));
+
+        try {
+            $scope->run($profile);
+        } finally {
+            $profile->addPoint(Profile\MeasurementPoint::now(MeasurementEvent::End));
+        }
+
+        return $profile;
     }
 
     /**
-     * @return list<Scope>
+     * @return list<Profile\Profile>
      */
-    public function releaseScopes(): array
+    public function release(): array
     {
-        $scopes = $this->scopes;
+        $profiles = $this->profiles;
 
-        $this->scopes = [];
+        $this->profiles = [];
 
-        return array_values($scopes);
+        return $profiles;
     }
 }

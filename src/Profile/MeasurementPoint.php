@@ -21,60 +21,66 @@ declare(strict_types=1);
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-namespace EliasHaeussler\ScopeProfiler;
+namespace EliasHaeussler\ScopeProfiler\Profile;
 
-use Stringable;
-use Symfony\Component\Console;
-
-use function sprintf;
+use function memory_get_peak_usage;
+use function memory_get_usage;
+use function microtime;
 
 /**
- * Measurement.
+ * MeasurementPoint.
  *
  * @author Elias Häußler <elias@haeussler.dev>
  * @license GPL-3.0-or-later
  */
-final readonly class Measurement implements Stringable
+final readonly class MeasurementPoint
 {
     /**
      * @param non-negative-int $memoryUsage
      * @param non-negative-int $memoryPeak
      */
     public function __construct(
-        public Scope $scope,
-        public float $duration,
+        public float $time,
         public int $memoryUsage,
         public int $memoryPeak,
+        public MeasurementEvent $event = MeasurementEvent::Checkpoint,
+        public ?string $note = null,
     ) {}
 
-    public function format(): string
+    public static function now(MeasurementEvent $event = MeasurementEvent::Checkpoint, ?string $note = null): self
     {
-        return sprintf(
-            '%s took %s and consumed %s of memory (peak at %s).',
-            $this->scope->action,
-            $this->formatDuration(),
-            $this->formatMemoryUsage(),
-            $this->formatMemoryPeak(),
+        return new self(
+            self::currentTime(),
+            self::currentMemoryUsage(),
+            self::currentMemoryPeak(),
+            $event,
+            $note,
         );
     }
 
-    public function formatDuration(): string
+    public function describe(): string
     {
-        return Console\Helper\Helper::formatTime($this->duration / 1000);
+        return $this->note ?? $this->event->name;
     }
 
-    public function formatMemoryUsage(): string
+    private static function currentTime(): float
     {
-        return Console\Helper\Helper::formatMemory($this->memoryUsage);
+        return microtime(true) * 1000;
     }
 
-    public function formatMemoryPeak(): string
+    /**
+     * @return non-negative-int
+     */
+    private static function currentMemoryUsage(): int
     {
-        return Console\Helper\Helper::formatMemory($this->memoryPeak);
+        return memory_get_usage(true);
     }
 
-    public function __toString(): string
+    /**
+     * @return non-negative-int
+     */
+    private static function currentMemoryPeak(): int
     {
-        return $this->format();
+        return memory_get_peak_usage(true);
     }
 }

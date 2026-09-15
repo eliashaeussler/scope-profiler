@@ -1,7 +1,7 @@
 parameters:
 	ignoreErrors:
 		-
-			rawMessage: 'Call to static method PHPUnit\Framework\Assert::assertSame() with ''foo'' and ''foo'' will always evaluate to true.'
-			identifier: staticMethod.alreadyNarrowedType
+			rawMessage: 'Parameter #1 $measurements of static method EliasHaeussler\ScopeProfiler\Profile\Measurement::accumulate() expects non-empty-list<EliasHaeussler\ScopeProfiler\Profile\Measurement>, list<EliasHaeussler\ScopeProfiler\Profile\Measurement> given.'
+			identifier: argument.type
 			count: 1
-			path: ../../tests/unit/ScopeTest.php
+			path: ../../src/Profile/Profile.php
