@@ -23,6 +23,10 @@ declare(strict_types=1);
 
 namespace EliasHaeussler\ScopeProfiler\Exception;
 
+use EliasHaeussler\ScopeProfiler\Scope\Scope;
+
+use function sprintf;
+
 /**
  * ScopeIsNotActive.
  *
@@ -31,8 +35,11 @@ namespace EliasHaeussler\ScopeProfiler\Exception;
  */
 final class ScopeIsNotActive extends Exception
 {
-    public function __construct(string $action)
+    public function __construct(Scope $scope)
     {
-        parent::__construct(sprintf('The scope "%s" is not active.', $action), 1785258952);
+        parent::__construct(
+            sprintf('The scope "%s" is not active.', $scope->name),
+            1785258952,
+        );
     }
 }

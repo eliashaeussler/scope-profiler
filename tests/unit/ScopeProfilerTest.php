@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace EliasHaeussler\ScopeProfiler\Tests;
 
 use EliasHaeussler\ScopeProfiler as Src;
+use Exception;
 use PHPUnit\Framework;
 
 /**
@@ -49,23 +50,48 @@ final class ScopeProfilerTest extends Framework\TestCase
     }
 
     #[Framework\Attributes\Test]
-    public function pushScopeAddsGivenScope(): void
+    public function profileRunsScopeAndReturnsProfile(): void
     {
-        $scope = new Src\Scope('foo');
+        $functionPoint = Src\Profile\MeasurementPoint::now(note: 'function');
+        $failurePoint = Src\Profile\MeasurementPoint::now(note: 'failure');
 
-        $this->subject->pushScope($scope);
+        $task = new Src\Scope\Task(
+            function (Src\Profile\Profile $profile) use ($functionPoint) {
+                $profile->addPoint($functionPoint);
 
-        self::assertEquals([$scope], $this->subject->releaseScopes());
+                throw new Exception('oops');
+            },
+            onFailure: function (Src\Profile\Profile $profile) use ($failurePoint) {
+                $profile->addPoint($failurePoint);
+            },
+        );
+
+        $scope = new Src\Scope\Scope('Foo');
+        $scope->addTask($task);
+
+        $actual = $this->subject->profile($scope);
+
+        self::assertSame($scope, $actual->scope);
+        self::assertCount(4, $actual->points());
+        self::assertSame(Src\Profile\MeasurementEvent::Start, $actual->points()[0]->event);
+        self::assertSame($functionPoint, $actual->points()[1]);
+        self::assertSame($failurePoint, $actual->points()[2]);
+        self::assertSame(Src\Profile\MeasurementEvent::End, $actual->points()[3]->event);
     }
 
     #[Framework\Attributes\Test]
-    public function pullScopeDropsScope(): void
+    public function releaseReturnsAndDetachesAllProfiles(): void
     {
-        $scope = new Src\Scope('foo');
+        $fooScope = new Src\Scope\Scope('foo');
+        $fooScope->addTask(new Src\Scope\Task(fn () => 'foo'));
 
-        $this->subject->pushScope($scope);
-        $this->subject->pullScope($scope);
+        $bazScope = new Src\Scope\Scope('baz');
+        $bazScope->addTask(new Src\Scope\Task(fn () => 'baz'));
 
-        self::assertEquals([], $this->subject->releaseScopes());
+        $fooProfile = $this->subject->profile($fooScope);
+        $bazProfile = $this->subject->profile($bazScope);
+
+        self::assertSame([$fooProfile, $bazProfile], $this->subject->release());
+        self::assertSame([], $this->subject->release());
     }
 }
